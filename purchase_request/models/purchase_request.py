@@ -114,7 +114,8 @@ class PurchaseRequest(models.Model):
 
     @api.depends('line_ids')
     def _compute_line_count(self):
-        self.line_count = len(self.mapped('line_ids'))
+        for rec in self:
+            rec.line_count = len(rec.mapped('line_ids'))
 
     @api.multi
     def action_view_purchase_request_line(self):
@@ -266,8 +267,10 @@ class PurchaseRequestLine(models.Model):
     cancelled = fields.Boolean(
         string="Cancelled", readonly=True, default=False, copy=False)
 
-    purchased_qty = fields.Float(string='Quantity in RFQ or PO',
-                                 compute="_compute_purchased_qty")
+    purchased_qty = fields.Float(
+        string='Quantity in RFQ or PO',
+        digits=dp.get_precision('Product Unit of Measure'),
+        compute="_compute_purchased_qty")
     purchase_lines = fields.Many2many(
         'purchase.order.line', 'purchase_request_purchase_order_line_rel',
         'purchase_request_line_id',
